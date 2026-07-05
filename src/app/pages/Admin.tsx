@@ -97,7 +97,7 @@ export default function Admin({
     };
 
     try {
-      const res = await fetch("http://localhost:3001/api/config", {
+      const res = await fetch("/api/config", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

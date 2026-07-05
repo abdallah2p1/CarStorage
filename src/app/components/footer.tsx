@@ -13,8 +13,6 @@ export default function Footer({
   return (
     <footer className="border-t-2 border-[#D4622A] bg-[#0A0A0A] mt-auto">
       <div className="max-w-[1100px] mx-auto px-6 py-10 flex flex-wrap justify-between items-center gap-6">
-        
-        {/* Brand and Licenses */}
         <div className="flex items-center gap-2.5">
           <div className="w-7.5 h-7.5 bg-[#D4622A] rounded-lg flex items-center justify-center">
             <Car className="w-3.5 h-3.5 text-white" />
@@ -28,8 +26,6 @@ export default function Footer({
             </span>
           </div>
         </div>
-
-        {/* Location Address */}
         <div className="flex items-start gap-2.5">
           <MapPin className="w-3.5 h-3.5 text-[#D4622A] mt-0.5" />
           <div className="text-xs text-[#888880] leading-relaxed">
@@ -38,8 +34,7 @@ export default function Footer({
           </div>
         </div>
 
-        {/* Call CTA Button */}
-        <a 
+        <a
           href={`tel:${config.company.phone.replace(/\D/g, "")}`} 
           className="inline-flex items-center gap-2 px-5 py-3 bg-[#D4622A] hover:bg-[#C25828] text-white text-xs font-bold rounded-xl no-underline transition-colors duration-150"
         >
@@ -47,15 +42,13 @@ export default function Footer({
           {config.company.phone}
         </a>
       </div>
-
-      {/* Copyright row */}
       <div className="border-t border-white/5 max-w-[1100px] mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-3 text-xs text-[#555550]">
         <p>© {new Date().getFullYear()} {config.company.name}. All rights reserved.</p>
         <div className="flex gap-4.5">
           {(["home", "search", "faq"] as Page[]).map((p) => (
-            <button 
-              key={p} 
-              onClick={() => setPage(p)} 
+            <button
+              key={p}
+              onClick={() => setPage(p)}
               className="bg-transparent border-none text-[12px] text-[#555550] hover:text-[#F2EDE8] cursor-pointer capitalize"
             >
               {p === "faq" ? "FAQ" : p}

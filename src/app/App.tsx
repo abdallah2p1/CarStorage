@@ -19,7 +19,7 @@ export default function App() {
 
   // 4. Fetch config from server on mount
   useEffect(() => {
-    fetch("http://localhost:3001/api/config")
+    fetch("/api/config")
       .then((res) => {
         if (!res.ok) throw new Error("Server error");
         return res.json();
@@ -88,7 +88,6 @@ export default function App() {
             config={config} 
             onSearchResult={(res) => {
               setSearchResults(res);
-              navigate("search"); // Switch to search tab on success
             }} 
             setPage={navigate} 
           />

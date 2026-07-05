@@ -26,12 +26,14 @@ export default function Home({
         </p>
         
         {/* Render SearchWidget */}
-        <SearchWidget onResults={(res) => {
-          if (res) {
-            onSearchResult(res);
-            setPage("search");
-          }
-        }} />
+        <SearchWidget 
+          config={config}
+          onResults={(res) => {
+            if (res) {
+              onSearchResult(res);
+            }
+          }} 
+        />
       </div>
 
       {/* Decorative Divider */}
