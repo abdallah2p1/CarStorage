@@ -1,0 +1,67 @@
+{
+  "company": {
+    "name": "Poppy Auto Storage",
+    "phone": "(818) 555-0192",
+    "address": "14720 Raymer Street, Van Nuys, CA 91405",
+    "towLicense": "TL-2024-00481",
+    "storageLicense": "ST-2024-00192",
+    "hoursNotice": "Vehicles can only be retrieved during regular business hours.",
+    "logoText": "Poppy Auto Storage",
+    "heroTitle": "Find your towed vehicle.",
+    "heroSubtitle": "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges."
+  },
+  "hours": [
+    {
+      "day": "Monday",
+      "open": "08:00 AM",
+      "close": "06:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Tuesday",
+      "open": "08:00 AM",
+      "close": "06:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Wednesday",
+      "open": "08:00 AM",
+      "close": "06:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Thursday",
+      "open": "08:00 AM",
+      "close": "06:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Friday",
+      "open": "08:00 AM",
+      "close": "06:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Saturday",
+      "open": "09:00 AM",
+      "close": "04:00 PM",
+      "closed": false
+    },
+    {
+      "day": "Sunday",
+      "open": "12:00 AM",
+      "close": "12:00 AM",
+      "closed": true
+    }
+  ],
+  "requiredDocuments": [
+    "Government-issued Photo ID",
+    "Proof of Ownership (Title or Registration)",
+    "Valid Insurance Card"
+  ],
+  "api": {
+    "mode": "prod",
+    "appID": "e213b097-ecbe-4b76-bf63-895db701d8c9",
+    "adminPin": "1234"
+  }
+}
