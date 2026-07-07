@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { 
   Lock, KeyRound, Building2, Layout, Clock, FileText, 
-  Trash2, Plus, Save, CheckCircle2, AlertCircle, Sparkles
+  Trash2, Plus, Save, CheckCircle2, AlertCircle, Sparkles, HelpCircle
 } from "lucide-react";
 import { AppConfig, BusinessHour } from "../utils/config";
 import { toast } from "sonner";
+import type { FAQItem } from "../utils/config";
 
 export default function Admin({
   config,
@@ -33,7 +34,10 @@ export default function Admin({
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>(config.requiredDocuments);
   const [newDocText, setNewDocText] = useState("");
 
-  const [activeTab, setActiveTab] = useState<"profile" | "hero" | "hours" | "docs">("profile");
+  // FAQ State
+  const [faqs, setFaqs] = useState<FAQItem[]>(config.faqs || []);
+
+  const [activeTab, setActiveTab] = useState<"profile" | "hero" | "hours" | "docs" | "faq">("profile");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -94,6 +98,7 @@ export default function Admin({
       },
       hours,
       requiredDocuments,
+      faqs,
     };
 
     try {
@@ -234,6 +239,7 @@ export default function Admin({
               { id: "hero", label: "Hero Page", icon: Layout },
               { id: "hours", label: "Hours", icon: Clock },
               { id: "docs", label: "Documents", icon: FileText },
+              { id: "faq", label: "FAQ", icon: HelpCircle },
             ] as const
           ).map((tab) => {
             const Icon = tab.icon;
@@ -488,6 +494,86 @@ export default function Admin({
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* FAQ TAB */}
+          {activeTab === "faq" && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5 flex justify-between items-center">
+                <span>Frequently Asked Questions</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFaqs([
+                      ...faqs,
+                      {
+                        id: crypto.randomUUID(),
+                        question: "",
+                        answer: "",
+                      },
+                    ])
+                  }
+                  className="px-3 py-1.5 bg-[#D4622A]/10 border border-[#D4622A]/20 text-[#D4622A] hover:bg-[#D4622A] hover:text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 inline mr-1" />
+                  Add FAQ
+                </button>
+              </h2>
+
+              <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1">
+                {faqs.length === 0 ? (
+                  <p className="text-xs text-[#888880] italic text-center py-6">
+                    No FAQs configured. Click "Add FAQ" to create one.
+                  </p>
+                ) : (
+                  faqs.map((faq) => (
+                    <div key={faq.id} className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3 relative group">
+                      <div className="flex justify-between items-center gap-4">
+                        <input
+                          type="text"
+                          value={faq.question}
+                          onChange={(e) =>
+                            setFaqs(
+                              faqs.map((f) =>
+                                f.id === faq.id
+                                  ? { ...f, question: e.target.value }
+                                  : f
+                              )
+                            )
+                          }
+                          placeholder="Question"
+                          className="flex-grow bg-[#1A1A1A] border border-white/5 rounded-lg px-3 py-2 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFaqs(faqs.filter((f) => f.id !== faq.id))
+                          }
+                          className="p-1 bg-transparent hover:bg-white/5 border-none text-[#888880] hover:text-[#CC3333] transition-colors cursor-pointer rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={faq.answer}
+                        onChange={(e) =>
+                          setFaqs(
+                            faqs.map((f) =>
+                              f.id === faq.id
+                                ? { ...f, answer: e.target.value }
+                                : f
+                            )
+                          )
+                        }
+                        placeholder="Answer"
+                        className="bg-[#1A1A1A] border border-white/5 rounded-lg px-3 py-2 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                      />
                     </div>
                   ))
                 )}

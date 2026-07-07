@@ -4,6 +4,7 @@ import Footer from "./components/footer";
 import { getConfig, AppConfig } from "./utils/config"; // Added AppConfig type
 import Home from "./pages/Home"; 
 import Admin from "./pages/Admin";
+import FAQPage from "./pages/Faq";
 
 type Page = "home" | "search" | "faq" | "admin";
 
@@ -99,9 +100,7 @@ export default function App() {
           </div>
         )}
         {page === "faq" && (
-          <div className="p-10 text-center text-[#888880] text-sm">
-            FAQ page placeholder
-          </div>
+          <FAQPage />
         )}
         {page === "admin" && (
           <Admin 

@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, FileText } from "lucide-react";
 import { AppConfig } from "../utils/config";
 import SearchWidget from "../components/SearchWidget"; // We will build/connect this next!
-
+import Faq from "./Faq";
 export default function Home({
   config,
   onSearchResult,
@@ -24,15 +24,15 @@ export default function Home({
         <p className="text-sm text-[#888880] leading-relaxed mb-10 max-w-[380px] mx-auto">
           {config.company.heroSubtitle || "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges."}
         </p>
-        
+
         {/* Render SearchWidget */}
-        <SearchWidget 
+        <SearchWidget
           config={config}
           onResults={(res) => {
             if (res) {
               onSearchResult(res);
             }
-          }} 
+          }}
         />
       </div>
 
@@ -44,7 +44,7 @@ export default function Home({
       {/* 2. Documents & Hours Information Grid */}
       <div className="max-w-[900px] mx-auto px-6 py-14 w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-          
+
           {/* Required Documents Checklist Card */}
           <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-7">
             <div className="flex items-center gap-2.5 mb-5.5">

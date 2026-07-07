@@ -57,11 +57,30 @@
   "requiredDocuments": [
     "Government-issued Photo ID",
     "Proof of Ownership (Title or Registration)",
-    "Valid Insurance Card"
+    "Valid Insurance Card",
+    "test",
+    "Abrahem"
   ],
   "api": {
     "mode": "prod",
     "appID": "e213b097-ecbe-4b76-bf63-895db701d8c9",
     "adminPin": "1234"
-  }
+  },
+  "faqs": [
+    {
+      "id": "39c1a8b6-0c73-405e-8cfa-62ea53416774",
+      "question": "test ",
+      "answer": "hi baby i love u"
+    },
+    {
+      "id": "7fef3ea1-7637-4fc9-b935-597fc4e18ef0",
+      "question": "test 2",
+      "answer": "whattt"
+    },
+    {
+      "id": "cd0c9014-e2d4-44c4-8306-0873dd55a0d4",
+      "question": "test 3",
+      "answer": "tesssssssssssssssssssssssst\n"
+    }
+  ]
 }
