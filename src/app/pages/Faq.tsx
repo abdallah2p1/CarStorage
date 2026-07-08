@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getConfig } from "../utils/config";
+import { getConfig, AppConfig } from "../utils/config";
 import { ChevronUp, ChevronDown, Phone } from "lucide-react";
 import type { FAQItem } from "../utils/config";
 
@@ -13,10 +13,13 @@ const C = {
     white: "#FFFFFF",
 };
 
-export default function FAQPage() {
+export default function FAQPage({
+    config,
+}: {
+    config: AppConfig;
+}) {
     const [open, setOpen] = useState<string | null>(null);
 
-    const config = getConfig();
     const faqs: FAQItem[] = config.faqs;
 
     return (
@@ -89,29 +92,42 @@ export default function FAQPage() {
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
+                                    transition: "background 0.3s ease",
                                 }}
                             >
-                                {open === faq.id ? (
-                                    <ChevronUp size={13} color="#fff" />
-                                ) : (
-                                    <ChevronDown size={13} color={C.textMuted} />
-                                )}
+                                <ChevronDown 
+                                    size={13} 
+                                    color={open === faq.id ? "#fff" : C.textMuted} 
+                                    style={{
+                                        transform: open === faq.id ? "rotate(180deg)" : "rotate(0deg)",
+                                        transition: "transform 0.3s ease, color 0.3s ease"
+                                    }}
+                                />
                             </div>
                         </button>
 
-                        {open === faq.id && (
-                            <div style={{ padding: "0 20px 18px" }}>
-                                <p
-                                    style={{
-                                        fontSize: 14,
-                                        color: C.textMuted,
-                                        lineHeight: 1.7,
-                                    }}
-                                >
-                                    {faq.answer}
-                                </p>
+                        <div 
+                            style={{ 
+                                display: "grid", 
+                                gridTemplateRows: open === faq.id ? "1fr" : "0fr",
+                                transition: "grid-template-rows 0.3s ease-in-out",
+                            }}
+                        >
+                            <div style={{ overflow: "hidden" }}>
+                                <div style={{ padding: "0 20px 18px" }}>
+                                    <p
+                                        style={{
+                                            fontSize: 14,
+                                            color: C.textMuted,
+                                            lineHeight: 1.7,
+                                            margin: 0,
+                                        }}
+                                    >
+                                        {faq.answer}
+                                    </p>
+                                </div>
                             </div>
-                        )}
+                        </div>
                     </div>
                 ))}
             </div>

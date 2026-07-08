@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import FAQPage from "./pages/Faq";
 
-type Page = "home" | "search" | "faq" | "admin";
+type Page = "home" | "faq" | "admin";
 
 export default function App() {
   // 1. Set up config state (starts as null while fetching from server)
@@ -40,8 +40,6 @@ export default function App() {
       const path = window.location.pathname;
       if (path === "/admin") {
         setPage("admin");
-      } else if (path === "/search") {
-        setPage("search");
       } else if (path === "/faq") {
         setPage("faq");
       } else {
@@ -94,17 +92,12 @@ export default function App() {
           />
         )}
 
-        {page === "search" && (
-          <div className="p-10 text-center text-[#888880] text-sm">
-            Search page placeholder (Results: {searchResults ? "Found vehicle!" : "No search yet"})
-          </div>
-        )}
         {page === "faq" && (
-          <FAQPage />
+          <FAQPage config={config} />
         )}
         {page === "admin" && (
-          <Admin 
-            config={config} 
+          <Admin
+            config={config}
             onConfigUpdate={(newConfig) => setConfig(newConfig)}
           />
         )}

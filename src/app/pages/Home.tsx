@@ -1,7 +1,14 @@
-import { CheckCircle2, Clock, FileText } from "lucide-react";
+import { CheckCircle2, Clock, FileText, ClipboardList, Calendar, List, Info } from "lucide-react";
 import { AppConfig } from "../utils/config";
 import SearchWidget from "../components/SearchWidget"; // We will build/connect this next!
 import Faq from "./Faq";
+
+const DynamicIcon = ({ name, className }: { name: string, className?: string }) => {
+  const icons: any = { FileText, ClipboardList, CheckCircle2, Info, Clock, Calendar, List };
+  const IconComponent = icons[name] || FileText;
+  return <IconComponent className={className} />;
+};
+
 export default function Home({
   config,
   onSearchResult,
@@ -49,9 +56,9 @@ export default function Home({
           <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-7">
             <div className="flex items-center gap-2.5 mb-5.5">
               <div className="w-8.5 h-8.5 bg-[#222] rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-[#D4622A]" />
+                <DynamicIcon name={config.documentsCard?.icon || "FileText"} className="w-4 h-4 text-[#D4622A]" />
               </div>
-              <span className="text-xs font-bold text-[#F2EDE8]">Required Documents</span>
+              <span className="text-xs font-bold text-[#F2EDE8]">{config.documentsCard?.title || "Required Documents"}</span>
             </div>
             <ul className="list-none p-0 m-0 flex flex-col gap-3">
               {config.requiredDocuments.map((doc) => (
@@ -61,15 +68,20 @@ export default function Home({
                 </li>
               ))}
             </ul>
+            {config.documentsCard?.notice && (
+              <div className="mt-4 p-3.5 bg-[#111111] border-l-2 border-[#D4622A] rounded-r-lg text-[11px] text-[#888880] leading-relaxed">
+                {config.documentsCard.notice}
+              </div>
+            )}
           </div>
 
           {/* Business Hours Card */}
           <div className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-7">
             <div className="flex items-center gap-2.5 mb-5.5">
               <div className="w-8.5 h-8.5 bg-[#222] rounded-lg flex items-center justify-center">
-                <Clock className="w-4 h-4 text-[#D4622A]" />
+                <DynamicIcon name={config.hoursCard?.icon || "Clock"} className="w-4 h-4 text-[#D4622A]" />
               </div>
-              <span className="text-xs font-bold text-[#F2EDE8]">Business Hours</span>
+              <span className="text-xs font-bold text-[#F2EDE8]">{config.hoursCard?.title || "Business Hours"}</span>
             </div>
             <div className="flex flex-col">
               {config.hours.map(({ day, open, close, closed }) => (

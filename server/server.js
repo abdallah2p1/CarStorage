@@ -35,6 +35,14 @@ if (!fs.existsSync(CONFIG_FILE)) {
       heroSubtitle:
         "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges.",
     },
+    documentsCard: {
+      title: "Required Documents",
+      icon: "FileText",
+    },
+    hoursCard: {
+      title: "Business Hours",
+      icon: "Clock",
+    },
     hours: [
       { day: "Monday", open: "08:00 AM", close: "06:00 PM", closed: false },
       { day: "Tuesday", open: "08:00 AM", close: "06:00 PM", closed: false },

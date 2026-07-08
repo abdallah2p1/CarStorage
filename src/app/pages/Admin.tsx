@@ -34,6 +34,12 @@ export default function Admin({
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>(config.requiredDocuments);
   const [newDocText, setNewDocText] = useState("");
 
+  const [docsCardTitle, setDocsCardTitle] = useState(config.documentsCard?.title || "Required Documents");
+  const [docsCardIcon, setDocsCardIcon] = useState(config.documentsCard?.icon || "FileText");
+  const [docsNotice, setDocsNotice] = useState(config.documentsCard?.notice || "");
+  const [hoursCardTitle, setHoursCardTitle] = useState(config.hoursCard?.title || "Business Hours");
+  const [hoursCardIcon, setHoursCardIcon] = useState(config.hoursCard?.icon || "Clock");
+
   // FAQ State
   const [faqs, setFaqs] = useState<FAQItem[]>(config.faqs || []);
 
@@ -95,6 +101,15 @@ export default function Admin({
         logoText,
         heroTitle,
         heroSubtitle,
+      },
+      documentsCard: {
+        title: docsCardTitle,
+        icon: docsCardIcon,
+        notice: docsNotice,
+      },
+      hoursCard: {
+        title: hoursCardTitle,
+        icon: hoursCardIcon,
       },
       hours,
       requiredDocuments,
@@ -378,17 +393,6 @@ export default function Admin({
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
-                  Retrieval Hours Notice Banner
-                </label>
-                <textarea
-                  rows={2}
-                  value={hoursNotice}
-                  onChange={(e) => setHoursNotice(e.target.value)}
-                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
-                />
-              </div>
             </div>
           )}
 
@@ -396,6 +400,26 @@ export default function Admin({
           {activeTab === "hours" && (
             <div className="flex flex-col gap-4">
               <h2 className="text-sm font-bold text-[#F2EDE8] pb-2 border-b border-white/5 mb-2">
+                Business Hours Card Settings
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Title</label>
+                  <input type="text" value={hoursCardTitle} onChange={(e) => setHoursCardTitle(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Icon</label>
+                  <select value={hoursCardIcon} onChange={(e) => setHoursCardIcon(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 appearance-none">
+                    <option value="Clock">Clock</option>
+                    <option value="Calendar">Calendar</option>
+                    <option value="List">List</option>
+                    <option value="Info">Info</option>
+                    <option value="FileText">FileText</option>
+                  </select>
+                </div>
+              </div>
+
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-2 border-b border-white/5 mb-2 mt-2">
                 Weekly Business Hours
               </h2>
 
@@ -446,6 +470,19 @@ export default function Admin({
                   </div>
                 ))}
               </div>
+
+              <div className="flex flex-col gap-2 mt-4">
+                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
+                  Retrieval Hours Notice Banner (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={hoursNotice}
+                  onChange={(e) => setHoursNotice(e.target.value)}
+                  placeholder="Leave blank to hide this notice from the card..."
+                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                />
+              </div>
             </div>
           )}
 
@@ -453,6 +490,39 @@ export default function Admin({
           {activeTab === "docs" && (
             <div className="flex flex-col gap-4">
               <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5">
+                Documents Card Settings
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Title</label>
+                  <input type="text" value={docsCardTitle} onChange={(e) => setDocsCardTitle(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Icon</label>
+                  <select value={docsCardIcon} onChange={(e) => setDocsCardIcon(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 appearance-none">
+                    <option value="FileText">FileText</option>
+                    <option value="ClipboardList">ClipboardList</option>
+                    <option value="CheckCircle2">CheckCircle2</option>
+                    <option value="Info">Info</option>
+                    <option value="Clock">Clock</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 mb-4">
+                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
+                  Documents Notice Banner (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={docsNotice}
+                  onChange={(e) => setDocsNotice(e.target.value)}
+                  placeholder="e.g. Please bring original copies..."
+                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                />
+              </div>
+
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5 mt-2">
                 Required Documents Checklist
               </h2>
 
@@ -512,7 +582,7 @@ export default function Admin({
                     setFaqs([
                       ...faqs,
                       {
-                        id: crypto.randomUUID(),
+                        id: `id-${faqs.length + 1}`,
                         question: "",
                         answer: "",
                       },

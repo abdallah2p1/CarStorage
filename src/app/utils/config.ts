@@ -17,6 +17,12 @@ export interface BusinessHour {
   closed: boolean;
 }
 
+export interface CardConfig {
+  title: string;
+  icon: string;
+  notice?: string;
+}
+
 export interface FAQItem {
   id: string;
   question: string;
@@ -39,6 +45,8 @@ export interface ApiConfig {
 
 export interface AppConfig {
   company: CompanyConfig;
+  documentsCard: CardConfig;
+  hoursCard: CardConfig;
   hours: BusinessHour[];
   faqs: FAQItem[];
   api: ApiConfig;
@@ -58,6 +66,15 @@ const DEFAULT_CONFIG: AppConfig = {
     heroTitle: "Find your towed vehicle.",
     heroSubtitle: "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges.",
   },
+  documentsCard: {
+    title: "Required Documents",
+    icon: "FileText",
+  },
+  hoursCard: {
+    title: "Business Hours",
+    icon: "Clock",
+  },
+
   hours: [
     { day: "Monday", open: "08:00 AM", close: "05:00 PM", closed: false },
     { day: "Tuesday", open: "08:00 AM", close: "05:00 PM", closed: false },
@@ -99,7 +116,6 @@ export function getConfig(): AppConfig {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
-      // If not initialized in localStorage, save the default config first
       saveConfig(DEFAULT_CONFIG);
       return DEFAULT_CONFIG;
     }
