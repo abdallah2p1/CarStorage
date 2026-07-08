@@ -440,18 +440,7 @@ export default function SearchWidget({
                 </div>
               </div>
 
-              {/* Compliance section */}
-              {selectedVehicle.legalDetails && (
-                <div className="border-t border-white/5 pt-4">
-                  <div className="bg-[#D4622A]/5 border border-[#D4622A]/10 rounded-xl p-3 flex gap-2.5 text-[10px] text-[#888880] leading-relaxed">
-                    <Scale className="w-4 h-4 text-[#D4622A] flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold text-[#F2EDE8] block mb-0.5 uppercase tracking-wider text-[9px]">State Compliance Notice</span>
-                      {selectedVehicle.legalDetails}
-                    </div>
-                  </div>
-                </div>
-              )}
+           
 
               {/* Action buttons */}
               <div className="border-t border-white/5 pt-4 flex gap-3">

@@ -2,9 +2,9 @@
   "company": {
     "name": "Poppy Auto Storage",
     "phone": "(818) 555-0192",
-    "address": "14720 Raymer Street, Van Nuys, CA 91405",
-    "towLicense": "TL-2024-00481",
-    "storageLicense": "ST-2024-00192",
+    "address": "14720 Raymer Street, Van Nuys, CFF 91405",
+    "towLicense": "",
+    "storageLicense": "",
     "hoursNotice": "Vehicles can only be retrieved during regular business hours.",
     "logoText": "Poppy Auto Storage",
     "heroTitle": "Find your towed vehicle.",
@@ -57,7 +57,9 @@
   "requiredDocuments": [
     "Government-issued Photo ID",
     "Proof of Ownership (Title or Registration)",
-    "Valid Insurance Card"
+    "Valid Insurance Card",
+    "dhhdhd",
+    "haha"
   ],
   "api": {
     "mode": "prod",
