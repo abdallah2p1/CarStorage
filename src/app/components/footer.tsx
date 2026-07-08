@@ -1,7 +1,7 @@
 import { Car, MapPin, Phone } from "lucide-react";
 import { AppConfig } from "../utils/config";
 
-type Page = "home" | "search" | "faq" | "admin";
+type Page = "home"  | "faq" | "admin";
 
 export default function Footer({
   config,
@@ -22,7 +22,7 @@ export default function Footer({
               {config.company.name}
             </span>
             <span className="block text-[11px] text-[#555550]">
-              CA Tow #{config.company.towLicense} · CA Storage #{config.company.storageLicense}
+              {config.company.towLicense} · {config.company.storageLicense}
             </span>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function Footer({
       <div className="border-t border-white/5 max-w-[1100px] mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-3 text-xs text-[#555550]">
         <p>© {new Date().getFullYear()} {config.company.name}. All rights reserved.</p>
         <div className="flex gap-4.5">
-          {(["home", "search", "faq"] as Page[]).map((p) => (
+          {(["home", "faq"] as Page[]).map((p) => (
             <button
               key={p}
               onClick={() => setPage(p)}

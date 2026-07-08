@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { 
   Lock, KeyRound, Building2, Layout, Clock, FileText, 
-  Trash2, Plus, Save, CheckCircle2, AlertCircle, Sparkles
+  Trash2, Plus, Save, CheckCircle2, AlertCircle, Sparkles, HelpCircle
 } from "lucide-react";
 import { AppConfig, BusinessHour } from "../utils/config";
 import { toast } from "sonner";
+import type { FAQItem } from "../utils/config";
 
 export default function Admin({
   config,
@@ -33,7 +34,16 @@ export default function Admin({
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>(config.requiredDocuments);
   const [newDocText, setNewDocText] = useState("");
 
-  const [activeTab, setActiveTab] = useState<"profile" | "hero" | "hours" | "docs">("profile");
+  const [docsCardTitle, setDocsCardTitle] = useState(config.documentsCard?.title || "Required Documents");
+  const [docsCardIcon, setDocsCardIcon] = useState(config.documentsCard?.icon || "FileText");
+  const [docsNotice, setDocsNotice] = useState(config.documentsCard?.notice || "");
+  const [hoursCardTitle, setHoursCardTitle] = useState(config.hoursCard?.title || "Business Hours");
+  const [hoursCardIcon, setHoursCardIcon] = useState(config.hoursCard?.icon || "Clock");
+
+  // FAQ State
+  const [faqs, setFaqs] = useState<FAQItem[]>(config.faqs || []);
+
+  const [activeTab, setActiveTab] = useState<"profile" | "hero" | "hours" | "docs" | "faq">("profile");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -92,8 +102,18 @@ export default function Admin({
         heroTitle,
         heroSubtitle,
       },
+      documentsCard: {
+        title: docsCardTitle,
+        icon: docsCardIcon,
+        notice: docsNotice,
+      },
+      hoursCard: {
+        title: hoursCardTitle,
+        icon: hoursCardIcon,
+      },
       hours,
       requiredDocuments,
+      faqs,
     };
 
     try {
@@ -234,6 +254,7 @@ export default function Admin({
               { id: "hero", label: "Hero Page", icon: Layout },
               { id: "hours", label: "Hours", icon: Clock },
               { id: "docs", label: "Documents", icon: FileText },
+              { id: "faq", label: "FAQ", icon: HelpCircle },
             ] as const
           ).map((tab) => {
             const Icon = tab.icon;
@@ -372,17 +393,6 @@ export default function Admin({
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
-                  Retrieval Hours Notice Banner
-                </label>
-                <textarea
-                  rows={2}
-                  value={hoursNotice}
-                  onChange={(e) => setHoursNotice(e.target.value)}
-                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
-                />
-              </div>
             </div>
           )}
 
@@ -390,6 +400,26 @@ export default function Admin({
           {activeTab === "hours" && (
             <div className="flex flex-col gap-4">
               <h2 className="text-sm font-bold text-[#F2EDE8] pb-2 border-b border-white/5 mb-2">
+                Business Hours Card Settings
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Title</label>
+                  <input type="text" value={hoursCardTitle} onChange={(e) => setHoursCardTitle(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Icon</label>
+                  <select value={hoursCardIcon} onChange={(e) => setHoursCardIcon(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 appearance-none">
+                    <option value="Clock">Clock</option>
+                    <option value="Calendar">Calendar</option>
+                    <option value="List">List</option>
+                    <option value="Info">Info</option>
+                    <option value="FileText">FileText</option>
+                  </select>
+                </div>
+              </div>
+
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-2 border-b border-white/5 mb-2 mt-2">
                 Weekly Business Hours
               </h2>
 
@@ -440,6 +470,19 @@ export default function Admin({
                   </div>
                 ))}
               </div>
+
+              <div className="flex flex-col gap-2 mt-4">
+                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
+                  Retrieval Hours Notice Banner (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={hoursNotice}
+                  onChange={(e) => setHoursNotice(e.target.value)}
+                  placeholder="Leave blank to hide this notice from the card..."
+                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                />
+              </div>
             </div>
           )}
 
@@ -447,6 +490,39 @@ export default function Admin({
           {activeTab === "docs" && (
             <div className="flex flex-col gap-4">
               <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5">
+                Documents Card Settings
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Title</label>
+                  <input type="text" value={docsCardTitle} onChange={(e) => setDocsCardTitle(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">Card Icon</label>
+                  <select value={docsCardIcon} onChange={(e) => setDocsCardIcon(e.target.value)} className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 appearance-none">
+                    <option value="FileText">FileText</option>
+                    <option value="ClipboardList">ClipboardList</option>
+                    <option value="CheckCircle2">CheckCircle2</option>
+                    <option value="Info">Info</option>
+                    <option value="Clock">Clock</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 mb-4">
+                <label className="text-[10px] font-bold text-[#888880] uppercase tracking-wider">
+                  Documents Notice Banner (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={docsNotice}
+                  onChange={(e) => setDocsNotice(e.target.value)}
+                  placeholder="e.g. Please bring original copies..."
+                  className="bg-[#111111] border border-white/5 rounded-xl px-4 py-3 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                />
+              </div>
+
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5 mt-2">
                 Required Documents Checklist
               </h2>
 
@@ -488,6 +564,86 @@ export default function Admin({
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* FAQ TAB */}
+          {activeTab === "faq" && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-sm font-bold text-[#F2EDE8] pb-3 border-b border-white/5 flex justify-between items-center">
+                <span>Frequently Asked Questions</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFaqs([
+                      ...faqs,
+                      {
+                        id: `id-${faqs.length + 1}`,
+                        question: "",
+                        answer: "",
+                      },
+                    ])
+                  }
+                  className="px-3 py-1.5 bg-[#D4622A]/10 border border-[#D4622A]/20 text-[#D4622A] hover:bg-[#D4622A] hover:text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 inline mr-1" />
+                  Add FAQ
+                </button>
+              </h2>
+
+              <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1">
+                {faqs.length === 0 ? (
+                  <p className="text-xs text-[#888880] italic text-center py-6">
+                    No FAQs configured. Click "Add FAQ" to create one.
+                  </p>
+                ) : (
+                  faqs.map((faq) => (
+                    <div key={faq.id} className="bg-[#111111] border border-white/5 rounded-xl p-4 flex flex-col gap-3 relative group">
+                      <div className="flex justify-between items-center gap-4">
+                        <input
+                          type="text"
+                          value={faq.question}
+                          onChange={(e) =>
+                            setFaqs(
+                              faqs.map((f) =>
+                                f.id === faq.id
+                                  ? { ...f, question: e.target.value }
+                                  : f
+                              )
+                            )
+                          }
+                          placeholder="Question"
+                          className="flex-grow bg-[#1A1A1A] border border-white/5 rounded-lg px-3 py-2 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFaqs(faqs.filter((f) => f.id !== faq.id))
+                          }
+                          className="p-1 bg-transparent hover:bg-white/5 border-none text-[#888880] hover:text-[#CC3333] transition-colors cursor-pointer rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={faq.answer}
+                        onChange={(e) =>
+                          setFaqs(
+                            faqs.map((f) =>
+                              f.id === faq.id
+                                ? { ...f, answer: e.target.value }
+                                : f
+                            )
+                          )
+                        }
+                        placeholder="Answer"
+                        className="bg-[#1A1A1A] border border-white/5 rounded-lg px-3 py-2 text-xs text-[#F2EDE8] outline-none focus:border-[#D4622A]/50 resize-none font-sans leading-relaxed"
+                      />
                     </div>
                   ))
                 )}

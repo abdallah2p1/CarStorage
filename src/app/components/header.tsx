@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { useState } from 'react';
 import type { AppConfig } from "../utils/config";
 
-type Page = "home" | "search" | "faq" | "admin"
+type Page = "home" | "faq" | "admin"
 
 export default function Header ({
   config,
@@ -18,7 +18,6 @@ export default function Header ({
     const [open , setOpen]=useState(false);
     const navList: {label:string , value:Page}[]=[
         {label:"Home" , value:"home"},
-        {label:"Search" , value:"search"},
         {label:"FAQ" , value:"faq"}
     ]
 
