@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Search, Building2, CreditCard, Car, FileText, Calendar, Printer, Scale, Truck } from "lucide-react";
+import { AlertCircle, Search, Building2, CreditCard, Car, FileText, Calendar, Printer, Scale, Truck, PhoneCall } from "lucide-react";
 import { lookupVehicle, LookupApiResponse, TowedVehicleDetails } from "../utils/api";
 import { getConfig, AppConfig } from "../utils/config";
 import { fmt } from "../utils/constants";
@@ -18,6 +18,7 @@ export default function SearchWidget({
   const [vin, setVin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<"released" | "notfound" | "generic" | null>(null);
   
   // Inline search results states
   const [result, setResult] = useState<LookupApiResponse | null>(null);
@@ -93,9 +94,22 @@ export default function SearchWidget({
     printWindow.document.close();
   };
 
+  const logSearch = async (query: string, success: boolean, details: string) => {
+    try {
+      await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, success, details }),
+      });
+    } catch (err) {
+      console.warn("Failed to write search log to server:", err);
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setErrorType(null);
     setResult(null);
     setSelectedVehicle(null);
     onResults(null);
@@ -103,6 +117,7 @@ export default function SearchWidget({
     const queryValue = mode === "plate" ? plate.trim() : vin.trim();
     if (!queryValue) {
       setError(`Please enter a ${mode === "plate" ? "license plate" : "VIN"}.`);
+      setErrorType("generic");
       return;
     }
 
@@ -118,13 +133,19 @@ export default function SearchWidget({
       );
 
       if (!res.success) {
-        setError("Please check back after 1 Hour.");
+        // No vehicle record found at all — wrong plate/VIN or not yet in system
+        setError("No results found, Check the info you entered and try again. Please give up 2 hours for vehicle status to update.");
+        setErrorType("notfound");
+        logSearch(queryValue, false, "Vehicle not found in database.");
       } else {
         const inLotVehicles = res.vehicles.filter(v => v.storageStatus?.trim().toLowerCase() === "in lot");
+        const releasedVehicles = res.vehicles.filter(v => {
+          const status = v.storageStatus?.trim().toLowerCase() || "";
+          return status !== "in lot";
+        });
 
-        if (inLotVehicles.length === 0) {
-          setError("The vehicle is not found in the Lot (Please check back after 1 Hour). ");
-        } else {
+        if (inLotVehicles.length > 0) {
+          // Vehicle(s) actively in storage — show details
           res.vehicles = inLotVehicles;
           res.count = inLotVehicles.length;
           setResult(res);
@@ -134,10 +155,26 @@ export default function SearchWidget({
             setSelectedVehicle(null);
           }
           onResults(res);
+          const logDetails = inLotVehicles.length === 1 
+            ? `Found ${inLotVehicles[0].year} ${inLotVehicles[0].make} ${inLotVehicles[0].model} in lot.`
+            : `Found ${inLotVehicles.length} matching vehicles in lot.`;
+          logSearch(queryValue, true, logDetails);
+        } else if (releasedVehicles.length > 0) {
+          // Vehicle was found but has already been released from the lot
+          setError("This vehicle has been released, please call for information.");
+          setErrorType("released");
+          logSearch(queryValue, false, "Vehicle has been released from storage.");
+        } else {
+          // Matched nothing usable
+          setError("No results found, Check the info you entered and try again. Please give up 2 hours for vehicle status to update.");
+          setErrorType("notfound");
+          logSearch(queryValue, false, "Vehicle not found in database (no active status).");
         }
       }
     } catch (err: any) {
       setError(err.message || "Search request failed. Please check your network connection.");
+      setErrorType("generic");
+      logSearch(queryValue, false, `Search failed: ${err.message || "Network Error"}`);
     } finally {
       setLoading(false);
     }
@@ -187,17 +224,28 @@ export default function SearchWidget({
         />
 
         {/* Error prompt */}
-        {error && (
+        {error && errorType === "released" && (
+          <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#D4622A]/10 border border-[#D4622A]/30 rounded-lg text-[#D4622A] text-xs">
+            <PhoneCall className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-[13px]">This vehicle has been released.</span>
+              <span className="text-[#D4622A]/80">Please call us for more information.</span>
+            </div>
+          </div>
+        )}
+        {error && errorType === "notfound" && (
           <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#CC3333]/10 border border-[#CC3333]/20 rounded-lg text-[#CC6666] text-xs">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            {error.includes("(") ? (
-              <div className="flex flex-col gap-1.5">
-                <span>{error.split("(")[0]}</span>
-                <span className="text-sm font-bold">({error.split("(")[1]}</span>
-              </div>
-            ) : (
-              <span>{error}</span>
-            )}
+            <div className="flex flex-col gap-1">
+              <span className="font-bold">No results found.</span>
+              <span>Check the info you entered and try again. Please give up 2 hours for vehicle status to update.</span>
+            </div>
+          </div>
+        )}
+        {error && (errorType === "generic" || errorType === null) && (
+          <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#CC3333]/10 border border-[#CC3333]/20 rounded-lg text-[#CC6666] text-xs">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 

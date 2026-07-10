@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"; // Added useEffect
 import Header from "./components/header"; 
 import Footer from "./components/footer";
-import { getConfig, AppConfig } from "./utils/config"; // Added AppConfig type
+import { getConfig, saveConfig, AppConfig } from "./utils/config"; // Added AppConfig type
 import Home from "./pages/Home"; 
 import Admin from "./pages/Admin";
 import FAQPage from "./pages/Faq";
@@ -27,6 +27,7 @@ export default function App() {
       })
       .then((data) => {
         setConfig(data);
+        saveConfig(data); // Sync local storage on load
       })
       .catch((err) => {
         console.warn("Could not load server config, falling back to local:", err);
@@ -98,7 +99,10 @@ export default function App() {
         {page === "admin" && (
           <Admin
             config={config}
-            onConfigUpdate={(newConfig) => setConfig(newConfig)}
+            onConfigUpdate={(newConfig) => {
+              setConfig(newConfig);
+              saveConfig(newConfig);
+            }}
           />
         )}
       </main>

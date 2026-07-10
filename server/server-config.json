@@ -73,7 +73,7 @@
   "api": {
     "mode": "prod",
     "appID": "e213b097-ecbe-4b76-bf63-895db701d8c9",
-    "adminPin": "1234"
+    "adminPin": "1234567890123456"
   },
   "faqs": [
     {
