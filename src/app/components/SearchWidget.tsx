@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Search, Building2, CreditCard, Car, FileText, Calendar, Printer, Scale, Truck } from "lucide-react";
+import { AlertCircle, Search, Building2, CreditCard, Car, FileText, Calendar, Printer, Scale, Truck, PhoneCall } from "lucide-react";
 import { lookupVehicle, LookupApiResponse, TowedVehicleDetails } from "../utils/api";
 import { getConfig, AppConfig } from "../utils/config";
 import { fmt } from "../utils/constants";
@@ -18,6 +18,7 @@ export default function SearchWidget({
   const [vin, setVin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<"released" | "notfound" | "generic" | null>(null);
   
   // Inline search results states
   const [result, setResult] = useState<LookupApiResponse | null>(null);
@@ -93,9 +94,22 @@ export default function SearchWidget({
     printWindow.document.close();
   };
 
+  const logSearch = async (query: string, success: boolean, details: string) => {
+    try {
+      await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, success, details }),
+      });
+    } catch (err) {
+      console.warn("Failed to write search log to server:", err);
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setErrorType(null);
     setResult(null);
     setSelectedVehicle(null);
     onResults(null);
@@ -103,6 +117,7 @@ export default function SearchWidget({
     const queryValue = mode === "plate" ? plate.trim() : vin.trim();
     if (!queryValue) {
       setError(`Please enter a ${mode === "plate" ? "license plate" : "VIN"}.`);
+      setErrorType("generic");
       return;
     }
 
@@ -118,18 +133,48 @@ export default function SearchWidget({
       );
 
       if (!res.success) {
-        setError(res.error || "Vehicle not found in database.");
+        // No vehicle record found at all — wrong plate/VIN or not yet in system
+        setError("No results found, Check the info you entered and try again. Please give up 2 hours for vehicle status to update.");
+        setErrorType("notfound");
+        logSearch(queryValue, false, "Vehicle not found in database.");
       } else {
-        setResult(res);
-        if (res.vehicles.length === 1) {
-          setSelectedVehicle(res.vehicles[0]);
+        const inLotVehicles = res.vehicles.filter(v => v.storageStatus?.trim().toLowerCase() === "in lot");
+        const releasedVehicles = res.vehicles.filter(v => {
+          const status = v.storageStatus?.trim().toLowerCase() || "";
+          return status !== "in lot";
+        });
+
+        if (inLotVehicles.length > 0) {
+          // Vehicle(s) actively in storage — show details
+          res.vehicles = inLotVehicles;
+          res.count = inLotVehicles.length;
+          setResult(res);
+          if (inLotVehicles.length === 1) {
+            setSelectedVehicle(inLotVehicles[0]);
+          } else {
+            setSelectedVehicle(null);
+          }
+          onResults(res);
+          const logDetails = inLotVehicles.length === 1 
+            ? `Found ${inLotVehicles[0].year} ${inLotVehicles[0].make} ${inLotVehicles[0].model} in lot.`
+            : `Found ${inLotVehicles.length} matching vehicles in lot.`;
+          logSearch(queryValue, true, logDetails);
+        } else if (releasedVehicles.length > 0) {
+          // Vehicle was found but has already been released from the lot
+          setError("This vehicle has been released, please call for information.");
+          setErrorType("released");
+          logSearch(queryValue, false, "Vehicle has been released from storage.");
         } else {
-          setSelectedVehicle(null);
+          // Matched nothing usable
+          setError("No results found, Check the info you entered and try again. Please give up 2 hours for vehicle status to update.");
+          setErrorType("notfound");
+          logSearch(queryValue, false, "Vehicle not found in database (no active status).");
         }
-        onResults(res);
       }
     } catch (err: any) {
       setError(err.message || "Search request failed. Please check your network connection.");
+      setErrorType("generic");
+      logSearch(queryValue, false, `Search failed: ${err.message || "Network Error"}`);
     } finally {
       setLoading(false);
     }
@@ -172,17 +217,35 @@ export default function SearchWidget({
             setError(null);
           }}
           placeholder={mode === "plate" ? "Enter license plate…" : "Enter 17-char VIN…"}
-          maxLength={mode === "plate" ? 10 : 17}
+          maxLength={mode === "plate" ? 10: 17}
           className={`w-full block bg-[#111111] border border-white/5 rounded-xl px-5 py-4 text-center font-mono text-[#F2EDE8] tracking-widest uppercase focus:border-[#D4622A]/50 outline-none mb-3 ${
-            mode === "plate" ? "text-2xl" : "text-sm"
+            mode === "plate" ? "text-sm" : "text-sm"
           }`}
         />
 
         {/* Error prompt */}
-        {error && (
-          <div className="flex items-center gap-2 mb-3 px-3.5 py-2.5 bg-[#CC3333]/10 border border-[#CC3333]/20 rounded-lg text-[#CC6666] text-xs">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            {error}
+        {error && errorType === "released" && (
+          <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#D4622A]/10 border border-[#D4622A]/30 rounded-lg text-[#D4622A] text-xs">
+            <PhoneCall className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col gap-1">
+              <span className="font-bold text-[13px]">This vehicle has been released.</span>
+              <span className="text-[#D4622A]/80">Please call us for more information.</span>
+            </div>
+          </div>
+        )}
+        {error && errorType === "notfound" && (
+          <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#CC3333]/10 border border-[#CC3333]/20 rounded-lg text-[#CC6666] text-xs">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col gap-1">
+              <span className="font-bold">No results found.</span>
+              <span>Check the info you entered and try again. Please give up 2 hours for vehicle status to update.</span>
+            </div>
+          </div>
+        )}
+        {error && (errorType === "generic" || errorType === null) && (
+          <div className="flex items-start gap-2 mb-3 px-3.5 py-3 bg-[#CC3333]/10 border border-[#CC3333]/20 rounded-lg text-[#CC6666] text-xs">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -205,44 +268,6 @@ export default function SearchWidget({
           )}
         </button>
       </form>
-
-      {/* Mock Mode Helper Banner */}
-      {((config || getConfig()).api?.mode === "mock") && (
-        <div className="mt-4 p-4 bg-[#D4622A]/5 border border-[#D4622A]/15 rounded-xl text-left">
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="w-1.5 h-1.5 bg-[#D4622A] rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4622A]">
-              Demo Search Credentials
-            </span>
-          </div>
-          <ul className="text-[11px] text-[#888880] list-none p-0 m-0 flex flex-col gap-1.5 leading-relaxed font-sans">
-            <li className="flex items-start gap-1">
-              <span className="text-[#D4622A]">•</span>
-              <span>
-                <strong className="text-[#F2EDE8]">Multiple Results:</strong> Plate <code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">COOLDUDE</code> (Buick & Lexus)
-              </span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-[#D4622A]">•</span>
-              <span>
-                <strong className="text-[#F2EDE8]">Single Result (Honda):</strong> Plate <code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">7ABC123</code> or VIN <code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">1HGBH41JXMN109186</code>
-              </span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-[#D4622A]">•</span>
-              <span>
-                <strong className="text-[#F2EDE8]">New Seed (Tesla Y):</strong> Plate <code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">9XYZ789</code> or VIN <code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">1FTNW20F93EA99999</code>
-              </span>
-            </li>
-            <li className="flex items-start gap-1">
-              <span className="text-[#D4622A]">•</span>
-              <span>
-                <strong className="text-[#F2EDE8]">Individual VINs:</strong> Buick (<code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">5GAKRCKD7HJ111111</code>) or Lexus (<code className="bg-[#222] text-[#F2EDE8] px-1.5 py-0.5 rounded font-mono text-[10px]">1FTNW20F93EA33333</code>)
-              </span>
-            </li>
-          </ul>
-        </div>
-      )}
 
       {/* Inline Search Results */}
       {result && result.success && (
@@ -366,9 +391,6 @@ export default function SearchWidget({
                 </div>
                 <div className="bg-[#161616] border border-white/5 rounded-xl p-3 flex flex-col gap-2.5 text-xs text-[#888880] leading-relaxed">
                   <div>
-                    <span className="font-semibold text-[#F2EDE8]">Tow Reason:</span> {selectedVehicle.towReason || "N/A"} ({selectedVehicle.towType || "Standard Tow"})
-                  </div>
-                  <div>
                     <span className="font-semibold text-[#F2EDE8]">Towed Location:</span> {selectedVehicle.towedStreet ? `${selectedVehicle.towedStreet}, ${selectedVehicle.towedCityName || ""}, ${selectedVehicle.towedStateName || ""}`.replace(/,\s*$/, '') : "N/A"}
                   </div>
                   <div className="flex justify-between items-center flex-wrap gap-2 text-[11px] pt-1.5 border-t border-white/5">
@@ -376,9 +398,11 @@ export default function SearchWidget({
                       <Calendar className="w-3 h-3 text-[#D4622A]" />
                       {selectedVehicle.towedDate || "N/A"} at {selectedVehicle.towedTime || "N/A"}
                     </span>
-                    <span>
-                      Operator: <span className="font-semibold text-[#F2EDE8]">{selectedVehicle.wreckerDriver || "N/A"}</span> ({selectedVehicle.wreckerCompany || "N/A"})
-                    </span>
+                    {selectedVehicle.wreckerCompany && (
+                      <span className="text-[13px]  tracking-wide ml-auto">
+                        {selectedVehicle.wreckerCompany}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -423,7 +447,7 @@ export default function SearchWidget({
                   </div>
                   {selectedVehicle.taxAmount !== undefined && selectedVehicle.taxAmount > 0 && (
                     <div className="flex justify-between text-[#888880]">
-                      <span>Tax / City Fees</span>
+                      <span>Sales Tax (8.25%)</span>
                       <span>{fmt(selectedVehicle.taxAmount)}</span>
                     </div>
                   )}
@@ -440,8 +464,7 @@ export default function SearchWidget({
                 </div>
               </div>
 
-           
-
+             
               {/* Action buttons */}
               <div className="border-t border-white/5 pt-4 flex gap-3">
                 <button

@@ -10,7 +10,28 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CONFIG_FILE = path.join(__dirname, "server-config.json");
+
+// Store the config OUTSIDE of OneDrive-synced folders to prevent sync conflicts
+// that could cause admin changes to revert. Uses Windows AppData\Local or the
+// project directory as a fallback.
+const CONFIG_DIR = process.env.LOCALAPPDATA
+  ? path.join(process.env.LOCALAPPDATA, "CarStorageApp")
+  : __dirname;
+if (!fs.existsSync(CONFIG_DIR)) {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+}
+const CONFIG_FILE = path.join(CONFIG_DIR, "server-config.json");
+
+// If config already exists in the old project location, migrate it once
+const OLD_CONFIG_FILE = path.join(__dirname, "server-config.json");
+if (!fs.existsSync(CONFIG_FILE) && fs.existsSync(OLD_CONFIG_FILE)) {
+  try {
+    fs.copyFileSync(OLD_CONFIG_FILE, CONFIG_FILE);
+    console.log(`[Config] Migrated config from project dir to: ${CONFIG_FILE}`);
+  } catch (e) {
+    console.warn("[Config] Could not migrate old config file:", e.message);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +56,14 @@ if (!fs.existsSync(CONFIG_FILE)) {
       heroSubtitle:
         "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges.",
     },
+    documentsCard: {
+      title: "Required Documents",
+      icon: "FileText",
+    },
+    hoursCard: {
+      title: "Business Hours",
+      icon: "Clock",
+    },
     hours: [
       { day: "Monday", open: "08:00 AM", close: "06:00 PM", closed: false },
       { day: "Tuesday", open: "08:00 AM", close: "06:00 PM", closed: false },
@@ -49,13 +78,65 @@ if (!fs.existsSync(CONFIG_FILE)) {
       "Proof of Ownership (Title or Registration)",
       "Valid Insurance Card",
     ],
+    faqs: [
+      {
+        id: "faq-1",
+        question: "What documents do I need to release my vehicle?",
+        answer: "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
+      },
+      {
+        id: "faq-2",
+        question: "Can someone else pick up my vehicle?",
+        answer: "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
+      },
+    ],
     api: {
       mode: "mock",
       appID: "e213b097-ecbe-4b76-bf63-895db701d8c9",
       adminPin: "1234",
     },
+    logs: [],
   };
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(defaultSettings, null, 2));
+} else {
+  // Migration block: Make sure logs and api structures exist
+  try {
+    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    let mutated = false;
+    if (!configData.logs) {
+      configData.logs = [];
+      mutated = true;
+    }
+    if (!configData.faqs) {
+      configData.faqs = [
+        {
+          id: "faq-1",
+          question: "What documents do I need to release my vehicle?",
+          answer: "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
+        },
+        {
+          id: "faq-2",
+          question: "Can someone else pick up my vehicle?",
+          answer: "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
+        },
+      ];
+      mutated = true;
+    }
+    if (!configData.api) {
+      configData.api = {
+        mode: "mock",
+        appID: "e213b097-ecbe-4b76-bf63-895db701d8c9",
+        adminPin: "1234",
+      };
+      mutated = true;
+    }
+    if (mutated) {
+      fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+      console.log("[Config] Migrated existing config file to include missing defaults.");
+    }
+  } catch (e) {
+    console.error("[Config] Failed to run migration check on existing config:", e.message);
+  }
 }
 
 // ─── API ENDPOINTS ───
@@ -74,11 +155,22 @@ app.get("/api/config", (req, res) => {
 app.post("/api/config", (req, res) => {
   const { pin, newConfig } = req.body;
 
-  if (pin !== process.env.ADMIN_PIN) {
+  // Always read PIN from config file (not env) so it never requires a restart
+  let validPin = process.env.ADMIN_PIN;
+  let currentLogs = [];
+  try {
+    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    if (configData.api?.adminPin) validPin = configData.api.adminPin;
+    if (configData.logs) currentLogs = configData.logs;
+  } catch (e) { /* fallback to env */ }
+
+  if (pin !== validPin) {
     return res.status(401).json({ error: "Unauthorized: Invalid Admin PIN" });
   }
 
   try {
+    // Preserve existing logs to prevent concurrency overwrites
+    newConfig.logs = currentLogs;
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(newConfig, null, 2));
     res.json({ success: true, message: "Configuration saved successfully." });
   } catch (error) {
@@ -86,10 +178,64 @@ app.post("/api/config", (req, res) => {
   }
 });
 
+// 2b. Add search log entry
+app.post("/api/log", (req, res) => {
+  const { query, success, details } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" });
+  }
+
+  try {
+    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    if (!configData.logs) configData.logs = [];
+
+    const newLog = {
+      id: Math.random().toString(36).substring(2, 9),
+      timestamp: new Date().toISOString(),
+      query: query.toUpperCase(),
+      success: !!success,
+      details: details || "",
+    };
+
+    // Prepend and limit logs size to 100 entries to prevent infinite growth
+    configData.logs = [newLog, ...configData.logs].slice(0, 100);
+
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+    res.json({ success: true, log: newLog });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to record search log." });
+  }
+});
+
+// 2c. Clear search logs (requires PIN validation)
+app.post("/api/clear-logs", (req, res) => {
+  const { pin } = req.body;
+
+  let validPin = process.env.ADMIN_PIN;
+  try {
+    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    if (configData.api?.adminPin) validPin = configData.api.adminPin;
+  } catch (e) { /* fallback to env */ }
+
+  if (pin !== validPin) {
+    return res.status(401).json({ error: "Unauthorized: Invalid Admin PIN" });
+  }
+
+  try {
+    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    configData.logs = [];
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+    res.json({ success: true, message: "Search logs cleared successfully." });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to clear search logs." });
+  }
+});
+
 // 3. Secure Proxy for VTSCLOUD XML Search Lookup (Bypasses CORS)
 app.get("/api/lookup", async (req, res) => {
   const { mode, plate, vin } = req.query;
-  
+
   // Read the real Application Key from the user's CMS settings
   let appID = process.env.VTS_APP_ID;
   try {

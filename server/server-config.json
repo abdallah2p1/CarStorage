@@ -10,6 +10,15 @@
     "heroTitle": "Find your towed vehicle.",
     "heroSubtitle": "Enter your license plate or VIN to check if your vehicle is in our facility and see outstanding charges."
   },
+  "documentsCard": {
+    "title": "Required Documents",
+    "icon": "FileText",
+    "notice": ""
+  },
+  "hoursCard": {
+    "title": "Business Hours",
+    "icon": "Clock"
+  },
   "hours": [
     {
       "day": "Monday",
@@ -57,13 +66,23 @@
   "requiredDocuments": [
     "Government-issued Photo ID",
     "Proof of Ownership (Title or Registration)",
-    "Valid Insurance Card",
-    "dhhdhd",
-    "haha"
+    "Valid Insurance Card"
   ],
   "api": {
     "mode": "prod",
     "appID": "e213b097-ecbe-4b76-bf63-895db701d8c9",
-    "adminPin": "1234"
-  }
+    "adminPin": "1234567890123456"
+  },
+  "faqs": [
+    {
+      "id": "id-1",
+      "question": "hey",
+      "answer": "hahkel"
+    },
+    {
+      "id": "id-2",
+      "question": "asas",
+      "answer": "asasssssss"
+    }
+  ]
 }

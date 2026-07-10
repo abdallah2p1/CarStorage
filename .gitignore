@@ -7,7 +7,6 @@ dist/
 build/
 
 # Local configuration files (contains dynamic database settings & credentials)
-server/server-config.json
 .env
 .env.local
 .env.*.local

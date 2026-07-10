@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"; // Added useEffect
 import Header from "./components/header"; 
 import Footer from "./components/footer";
-import { getConfig, AppConfig } from "./utils/config"; // Added AppConfig type
+import { getConfig, saveConfig, AppConfig } from "./utils/config"; // Added AppConfig type
 import Home from "./pages/Home"; 
 import Admin from "./pages/Admin";
+import FAQPage from "./pages/Faq";
 
-type Page = "home" | "search" | "faq" | "admin";
+type Page = "home" | "faq" | "admin";
 
 export default function App() {
   // 1. Set up config state (starts as null while fetching from server)
@@ -26,6 +27,7 @@ export default function App() {
       })
       .then((data) => {
         setConfig(data);
+        saveConfig(data); // Sync local storage on load
       })
       .catch((err) => {
         console.warn("Could not load server config, falling back to local:", err);
@@ -39,8 +41,6 @@ export default function App() {
       const path = window.location.pathname;
       if (path === "/admin") {
         setPage("admin");
-      } else if (path === "/search") {
-        setPage("search");
       } else if (path === "/faq") {
         setPage("faq");
       } else {
@@ -93,20 +93,16 @@ export default function App() {
           />
         )}
 
-        {page === "search" && (
-          <div className="p-10 text-center text-[#888880] text-sm">
-            Search page placeholder (Results: {searchResults ? "Found vehicle!" : "No search yet"})
-          </div>
-        )}
         {page === "faq" && (
-          <div className="p-10 text-center text-[#888880] text-sm">
-            FAQ page placeholder
-          </div>
+          <FAQPage config={config} />
         )}
         {page === "admin" && (
-          <Admin 
-            config={config} 
-            onConfigUpdate={(newConfig) => setConfig(newConfig)}
+          <Admin
+            config={config}
+            onConfigUpdate={(newConfig) => {
+              setConfig(newConfig);
+              saveConfig(newConfig);
+            }}
           />
         )}
       </main>
