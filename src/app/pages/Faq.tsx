@@ -95,9 +95,9 @@ export default function FAQPage({
                                     transition: "background 0.3s ease",
                                 }}
                             >
-                                <ChevronDown 
-                                    size={13} 
-                                    color={open === faq.id ? "#fff" : C.textMuted} 
+                                <ChevronDown
+                                    size={13}
+                                    color={open === faq.id ? "#fff" : C.textMuted}
                                     style={{
                                         transform: open === faq.id ? "rotate(180deg)" : "rotate(0deg)",
                                         transition: "transform 0.3s ease, color 0.3s ease"
@@ -106,9 +106,9 @@ export default function FAQPage({
                             </div>
                         </button>
 
-                        <div 
-                            style={{ 
-                                display: "grid", 
+                        <div
+                            style={{
+                                display: "grid",
                                 gridTemplateRows: open === faq.id ? "1fr" : "0fr",
                                 transition: "grid-template-rows 0.3s ease-in-out",
                             }}
@@ -152,7 +152,7 @@ export default function FAQPage({
                     </p>
 
                     <p style={{ fontSize: 13, color: C.textMuted }}>
-                        Mon–Fri 8am–6pm · Sat 9am–4pm
+                        we answer the phone 24/7
                     </p>
                 </div>
 
