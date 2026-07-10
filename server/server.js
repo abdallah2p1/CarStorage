@@ -247,6 +247,9 @@ app.get("/api/lookup", async (req, res) => {
     console.error("Could not read config file, falling back to env App ID");
   }
 
+  console.log(`[Search Proxy] Request received -> Mode: ${mode} | Plate: ${plate || 'N/A'} | VIN: ${vin || 'N/A'}`);
+  console.log(`[Search Proxy] Using VTS AppID: ${appID ? appID.substring(0,8) + "..." : "NONE"}`);
+
   if (!appID) {
     return res
       .status(500)
