@@ -1,6 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -39,6 +40,21 @@ const PORT = process.env.PORT || 3001;
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
+
+// Enable trust proxy for platforms like Render so rate limiting gets the real client IP
+app.set('trust proxy', 1);
+
+// Rate limiting (max 20 requests per minute per IP for API endpoints)
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: { error: "Too many requests from this IP, please try again after a minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiter to all API routes
+app.use("/api/", apiLimiter);
 
 // Initialize server-config.json if it doesn't exist
 if (!fs.existsSync(CONFIG_FILE)) {

@@ -1,7 +1,7 @@
+import { AlertCircle, Calendar, Car, FileText, PhoneCall, Printer, Search, Truck } from "lucide-react";
 import { useState } from "react";
-import { AlertCircle, Search, Building2, CreditCard, Car, FileText, Calendar, Printer, Scale, Truck, PhoneCall } from "lucide-react";
-import { lookupVehicle, LookupApiResponse, TowedVehicleDetails } from "../utils/api";
-import { getConfig, AppConfig } from "../utils/config";
+import { LookupApiResponse, lookupVehicle, TowedVehicleDetails } from "../utils/api";
+import { AppConfig, getConfig } from "../utils/config";
 import { fmt } from "../utils/constants";
 
 export default function SearchWidget({
@@ -134,7 +134,7 @@ export default function SearchWidget({
 
       if (!res.success) {
         // No vehicle record found at all — wrong plate/VIN or not yet in system
-        setError("No results found, Check the info you entered and try again. Please give up 2 hours for vehicle status to update.");
+        setError("No results found, Check the info you entered and try again. Please give us 2 hours for vehicle status to update.");
         setErrorType("notfound");
         logSearch(queryValue, false, "Vehicle not found in database.");
       } else {
