@@ -42,13 +42,15 @@ app.use(cors());
 app.use(express.json());
 
 // Enable trust proxy for platforms like Render so rate limiting gets the real client IP
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Rate limiting (max 20 requests per minute per IP for API endpoints)
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 20, // limit each IP to 20 requests per windowMs
-  message: { error: "Too many requests from this IP, please try again after a minute." },
+  message: {
+    error: "Too many requests from this IP, please try again after a minute.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -98,12 +100,14 @@ if (!fs.existsSync(CONFIG_FILE)) {
       {
         id: "faq-1",
         question: "What documents do I need to release my vehicle?",
-        answer: "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
+        answer:
+          "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
       },
       {
         id: "faq-2",
         question: "Can someone else pick up my vehicle?",
-        answer: "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
+        answer:
+          "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
       },
     ],
     api: {
@@ -128,12 +132,14 @@ if (!fs.existsSync(CONFIG_FILE)) {
         {
           id: "faq-1",
           question: "What documents do I need to release my vehicle?",
-          answer: "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
+          answer:
+            "You will need a government-issued photo ID, proof of ownership (such as registration or title), and valid insurance.",
         },
         {
           id: "faq-2",
           question: "Can someone else pick up my vehicle?",
-          answer: "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
+          answer:
+            "Yes, but they must have a notarized authorization letter from the registered owner, a copy of the owner's photo ID, and their own valid ID.",
         },
       ];
       mutated = true;
@@ -148,10 +154,15 @@ if (!fs.existsSync(CONFIG_FILE)) {
     }
     if (mutated) {
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
-      console.log("[Config] Migrated existing config file to include missing defaults.");
+      console.log(
+        "[Config] Migrated existing config file to include missing defaults.",
+      );
     }
   } catch (e) {
-    console.error("[Config] Failed to run migration check on existing config:", e.message);
+    console.error(
+      "[Config] Failed to run migration check on existing config:",
+      e.message,
+    );
   }
 }
 
@@ -178,7 +189,9 @@ app.post("/api/config", (req, res) => {
     const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
     if (configData.api?.adminPin) validPin = configData.api.adminPin;
     if (configData.logs) currentLogs = configData.logs;
-  } catch (e) { /* fallback to env */ }
+  } catch (e) {
+    /* fallback to env */
+  }
 
   if (pin !== validPin) {
     return res.status(401).json({ error: "Unauthorized: Invalid Admin PIN" });
@@ -232,7 +245,9 @@ app.post("/api/clear-logs", (req, res) => {
   try {
     const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
     if (configData.api?.adminPin) validPin = configData.api.adminPin;
-  } catch (e) { /* fallback to env */ }
+  } catch (e) {
+    /* fallback to env */
+  }
 
   if (pin !== validPin) {
     return res.status(401).json({ error: "Unauthorized: Invalid Admin PIN" });
@@ -263,8 +278,12 @@ app.get("/api/lookup", async (req, res) => {
     console.error("Could not read config file, falling back to env App ID");
   }
 
-  console.log(`[Search Proxy] Request received -> Mode: ${mode} | Plate: ${plate || 'N/A'} | VIN: ${vin || 'N/A'}`);
-  console.log(`[Search Proxy] Using VTS AppID: ${appID ? appID.substring(0,8) + "..." : "NONE"}`);
+  console.log(
+    `[Search Proxy] Request received -> Mode: ${mode} | Plate: ${plate || "N/A"} | VIN: ${vin || "N/A"}`,
+  );
+  console.log(
+    `[Search Proxy] Using VTS AppID: ${appID ? appID.substring(0, 8) + "..." : "NONE"}`,
+  );
 
   if (!appID) {
     return res
@@ -324,7 +343,7 @@ app.use(express.static(distPath));
 
 // Fallback for Single Page Application routing (React Router client-side routes)
 app.use((req, res) => {
-  if (req.method === 'GET' && !req.path.startsWith("/api")) {
+  if (req.method === "GET" && !req.path.startsWith("/api")) {
     res.sendFile(path.join(distPath, "index.html"));
   } else {
     res.status(404).json({ error: "API Endpoint not found" });
