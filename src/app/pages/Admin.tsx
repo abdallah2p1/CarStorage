@@ -737,7 +737,7 @@ export default function Admin({
                     setFaqs([
                       ...faqs,
                       {
-                        id: `id-${faqs.length + 1}`,
+                        id: `id-${Math.random().toString(36).substring(2, 9)}`,
                         question: "",
                         answer: "",
                       },
