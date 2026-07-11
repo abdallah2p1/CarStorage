@@ -41,8 +41,20 @@ export default function Admin({
   const [hoursCardTitle, setHoursCardTitle] = useState(config.hoursCard?.title || "Business Hours");
   const [hoursCardIcon, setHoursCardIcon] = useState(config.hoursCard?.icon || "Clock");
 
-  // FAQ State
-  const [faqs, setFaqs] = useState<FAQItem[]>(config.faqs || []);
+  // FAQ State (Sanitized to fix any leftover duplicate IDs from the old bug)
+  const [faqs, setFaqs] = useState<FAQItem[]>(() => {
+    const existing = config.faqs || [];
+    const seen = new Set();
+    return existing.map(f => {
+      if (seen.has(f.id)) {
+        const newId = `id-${Math.random().toString(36).substring(2, 9)}`;
+        seen.add(newId);
+        return { ...f, id: newId };
+      }
+      seen.add(f.id);
+      return f;
+    });
+  });
 
   // API Config States
   const [apiMode, setApiMode] = useState(config.api?.mode || "mock");
