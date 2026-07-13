@@ -17,6 +17,8 @@ const __dirname = path.dirname(__filename);
 // project directory as a fallback.
 const CONFIG_DIR = process.env.LOCALAPPDATA
   ? path.join(process.env.LOCALAPPDATA, "CarStorageApp")
+  : process.env.DATA_DIR
+  ? process.env.DATA_DIR
   : __dirname;
 if (!fs.existsSync(CONFIG_DIR)) {
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
