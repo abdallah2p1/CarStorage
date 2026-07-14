@@ -18,8 +18,8 @@ const __dirname = path.dirname(__filename);
 const CONFIG_DIR = process.env.LOCALAPPDATA
   ? path.join(process.env.LOCALAPPDATA, "CarStorageApp")
   : process.env.DATA_DIR
-  ? process.env.DATA_DIR
-  : __dirname;
+    ? process.env.DATA_DIR
+    : __dirname;
 if (!fs.existsSync(CONFIG_DIR)) {
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
 }
@@ -171,11 +171,16 @@ if (!fs.existsSync(CONFIG_FILE)) {
 // ─── API ENDPOINTS ───
 
 // 1. Get CMS Configurations
-app.get("/api/config", (req, res) => {
+app.get("/api/config", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   try {
-    const data = fs.readFileSync(CONFIG_FILE, "utf-8");
-    res.json(JSON.parse(data));
+    // Read the file asynchronously without blocking the event loop
+    const data = await fs.promises.readFile(CONFIG_FILE, "utf-8");
+    
+    // Send the string directly as JSON to avoid unnecessary parsing
+    res.type("application/json").send(data);
   } catch (error) {
+    console.error("Config read error:", error);
     res.status(500).json({ error: "Failed to read server configuration." });
   }
 });
@@ -272,8 +277,8 @@ app.get("/api/lookup", async (req, res) => {
   // Read the real Application Key from the user's CMS settings
   let appID = process.env.VTS_APP_ID;
   try {
-    const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
-    if (configData.api && configData.api.appID) {
+    const configData = JSON.parse(await fs.promises.readFile(CONFIG_FILE, "utf-8"));
+    if (configData?.api?.appID) {
       appID = configData.api.appID;
     }
   } catch (err) {
